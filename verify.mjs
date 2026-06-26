@@ -6,7 +6,8 @@
 //
 //   #1 + #1b patched  -> click reactive, $evtclick=function, templateRef=ref-set:BUTTON, 0 console errors
 //   #1 only           -> click reactive but templateRef=ref-NULL  (the #1b surface)
-//   no patch          -> button inert: $evtclick=undefined, count frozen (the #1 surface)
+//   no patch          -> no interactive button (#1): inert for a pure-Vapor root, or
+//                        crashes in Nuxt's vDOM-interop host (see planFor below)
 //
 // A real browser is required: happy-dom/jsdom mis-report this bug.
 import { spawn } from 'node:child_process'
@@ -23,7 +24,6 @@ function patchState() {
   return {
     has1: src.includes('!isBlock(setupResult) && component.render'),                 // handleSetupResult fix
     has1b: src.includes('const setupState = instance.setupState || {};'),            // setRef fix
-    file,
   }
 }
 
@@ -72,7 +72,7 @@ async function probe(url) {
         after,
         reactive: before !== after,
         evtclick,
-        templateRef: probeEl ? probeEl.textContent.replace('templateRef = ', '').trim() : 'no-probe',
+        templateRef: probeEl ? probeEl.textContent.trim() : 'no-probe',
       }
     })
     return { ...r, errors }
@@ -126,13 +126,19 @@ const port = await freePort()
 const url = `http://127.0.0.1:${port}/`
 const srv = spawn(process.execPath, ['.output/server/index.mjs'], {
   env: { ...process.env, PORT: String(port), NITRO_PORT: String(port), HOST: '127.0.0.1' },
-  stdio: 'ignore',
+  stdio: ['ignore', 'pipe', 'pipe'],
 })
+let serverOutput = ''
+srv.stdout.on('data', (d) => (serverOutput += d))
+srv.stderr.on('data', (d) => (serverOutput += d))
 
 let r
 try {
   await waitReachable(url)
   r = await probe(url)
+} catch (err) {
+  console.error('--- server output ---\n' + (serverOutput.trim() || '(none)'))
+  throw err
 } finally {
   srv.kill('SIGTERM')
 }

@@ -4,10 +4,7 @@
   "private": true,
   "scripts": {
     "build": "nuxt build",
-    "dev": "nuxt dev",
-    "generate": "nuxt generate",
-    "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
+    "postinstall": "nuxt prepare && playwright install chromium",
     "verify": "rm -rf node_modules/.cache .nuxt node_modules/.vite .output && nuxt build && node verify.mjs"
   },
   "dependencies": {

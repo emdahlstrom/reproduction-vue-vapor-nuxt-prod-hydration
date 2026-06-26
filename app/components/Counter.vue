@@ -2,11 +2,8 @@
 import { ref, onMounted } from 'vue'
 const count = ref(0)
 
-// A setup-variable template ref. This exercises BOTH prod bugs:
-//   #1  handleSetupResult drops the non-inline render()  -> button inert
-//   #1b setRef's `setupState[ref] = el` write is __DEV__-gated/DCE'd
-//       -> `btnEl.value` stays null even once #1 is fixed
-// The patch (patches/@vue__runtime-vapor@3.6.0-beta.17.patch) fixes both.
+// The button proves click hydration (#1 handleSetupResult); the probe proves a
+// setup-variable template ref reaches the setup var (#1b setRef). See README.
 const btnEl = ref<HTMLButtonElement | null>(null)
 const refProbe = ref('pending')
 onMounted(() => {
@@ -16,5 +13,5 @@ onMounted(() => {
 
 <template>
   <button ref="btnEl" type="button" @click="count++">count is {{ count }}</button>
-  <p data-test="probe">templateRef = {{ refProbe }}</p>
+  <p data-test="probe">{{ refProbe }}</p>
 </template>
