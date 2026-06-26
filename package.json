@@ -1,0 +1,40 @@
+{
+  "name": "nuxt-vapor-repro",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "verify": "rm -rf node_modules/.cache .nuxt node_modules/.vite .output && nuxt build && node verify.mjs"
+  },
+  "dependencies": {
+    "nuxt": "^4.4.8",
+    "vue": "3.6.0-beta.17",
+    "vue-router": "^5.1.0"
+  },
+  "devDependencies": {
+    "playwright": "^1.61.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "vue": "3.6.0-beta.17",
+      "@vue/shared": "3.6.0-beta.17",
+      "@vue/reactivity": "3.6.0-beta.17",
+      "@vue/runtime-core": "3.6.0-beta.17",
+      "@vue/runtime-dom": "3.6.0-beta.17",
+      "@vue/runtime-vapor": "3.6.0-beta.17",
+      "@vue/server-renderer": "3.6.0-beta.17",
+      "@vue/compiler-core": "3.6.0-beta.17",
+      "@vue/compiler-dom": "3.6.0-beta.17",
+      "@vue/compiler-sfc": "3.6.0-beta.17",
+      "@vue/compiler-ssr": "3.6.0-beta.17",
+      "@vue/compiler-vapor": "3.6.0-beta.17"
+    },
+    "patchedDependencies": {
+      "@vue/runtime-vapor@3.6.0-beta.17": "patches/@vue__runtime-vapor@3.6.0-beta.17.patch"
+    }
+  }
+}
