@@ -34,10 +34,18 @@ setupState still gated).
 
 ## Why non-inline matters
 
-`@vitejs/plugin-vue` folds the template into `setup()` only when `!devServer && !devToolsEnabled`.
-Nuxt, Astro, and `features: { prodDevtools: true }` all produce non-inline output in prod, so
-real prod builds hit this. An inline build returns the block directly and hides the bug — forcing
-non-inline codegen is essential or the test is a false negative.
+`@vitejs/plugin-vue` folds the template into `setup()` (inline) only when
+`!devServer && !devToolsEnabled`. That one condition decides whether a framework hits these bugs:
+
+- **Astro** keeps `devServer` set during its prod build, so it emits **non-inline** output by
+  default — an Astro Vapor island is affected with zero config.
+- **Nuxt** builds **inline** by default, so a default Nuxt Vapor app is **not** affected. It only
+  breaks when something forces non-inline: this repro flips `vite.vue.features.prodDevtools: true`;
+  an external-template SFC (`<template src="...">`) would too.
+
+So forcing non-inline codegen is essential here, or the test is a false negative. Confirmed
+empirically: an **inline + unpatched** build runs fine — counter reactive, `$evtclick=function`,
+template ref resolves, zero console errors.
 
 ## Reproduce
 

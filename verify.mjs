@@ -85,7 +85,8 @@ async function probe(url) {
 // actually manifests in THIS repo. Note: here the no-patch case CRASHES (no
 // button) rather than going inert — that is Nuxt-vDOM-interop-specific for a
 // component with a setup-var template ref (a pure-Vapor root stays inert). The
-// no-patch assertion below ("no working interactive button") covers both.
+// no-patch assertion below requires that broken state (crash OR inert), so a
+// blank/errored build fails instead of masquerading as the reproduced bug.
 function planFor({ has1, has1b }) {
   if (has1 && has1b)
     return {
@@ -111,9 +112,16 @@ function planFor({ has1, has1b }) {
   return {
     label: 'no patch — app broken (the bug)',
     checks: (r) => [
-      // No working/interactive button: inert (simple component) or crashed
-      // (this repo's template-ref component). Either way, not interactive.
-      ['no working interactive button', !(r.hasButton && r.reactive && r.evtclick === 'function')],
+      ['not interactive', !(r.hasButton && r.reactive && r.evtclick === 'function')],
+      // Require the bug's specific signature so a blank/errored build fails here:
+      // a hydration mismatch (Nuxt's vDOM-interop host drops the button) or an
+      // inert button (present but not reactive, no delegated handler). A generic
+      // `errors.length >= 1` would also accept an unrelated startup/build failure.
+      [
+        'hydration mismatch or inert button (blank/errored build fails)',
+        r.errors.some((e) => /Hydration completed but contains mismatches/i.test(e)) ||
+          (r.hasButton && !r.reactive && r.evtclick !== 'function'),
+      ],
     ],
   }
 }
